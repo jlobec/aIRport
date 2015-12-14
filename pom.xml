@@ -18,6 +18,21 @@
     </properties>
     <dependencyManagement>
         <dependencies>
+        	<dependency>
+        		<groupId>org.apache.lucene</groupId>
+        		<artifactId>lucene-core</artifactId>
+        		<version>4.8.1</version>
+        	</dependency>
+        	<dependency>
+        		<groupId>org.apache.lucene</groupId>
+        		<artifactId>lucene-queryparser</artifactId>
+        		<version>4.8.1</version>
+        	</dependency>
+        	<dependency>
+        		<groupId>org.apache.lucene</groupId>
+        		<artifactId>lucene-analyzers-common</artifactId>
+        		<version>4.8.1</version>
+        	</dependency>
             <dependency>
                 <groupId>io.spring.platform</groupId>
                 <artifactId>platform-bom</artifactId>
