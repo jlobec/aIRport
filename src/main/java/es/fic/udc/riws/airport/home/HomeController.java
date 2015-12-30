@@ -5,17 +5,15 @@ import java.security.Principal;
 
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
-import es.fic.udc.riws.airport.simpledemo.SimpleDemo;
 
 @Controller
 public class HomeController {
 	
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String index(Principal principal) throws IOException, ParseException {
-		SimpleDemo demo = new SimpleDemo();
-		demo.index();
 		return principal != null ? "home/homeSignedIn" : "home/homeNotSignedIn";
 	}
 }
