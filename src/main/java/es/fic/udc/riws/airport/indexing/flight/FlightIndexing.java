@@ -27,8 +27,8 @@ import org.apache.lucene.util.Version;
 public class FlightIndexing {
 
 	//Subconjunto de todos los documentos con 20 documentos aprox. para ir probando
-	private static final String RUTA_ARCHIVOS = "/home/jesus/flights_parsed/subset";
-	private static final String RUTA_INDEX = "tmp/flightindex";
+	private static final String RUTA_ARCHIVOS = "/home/jesus/flights_parsed";
+	private static final String RUTA_INDEX = "tmp/flightindexall";
 	
 	public static void doIndex() throws IOException, ParseException{
 		
@@ -68,7 +68,11 @@ public class FlightIndexing {
 	            	// El aeropuerto se divide en codigo de aeropuerto y nombre
 	            	String[] aepTrozos = aeropuerto.split(" ");
 	            	String aepCodigo = aepTrozos[0].replaceAll("[()]", "");
-	            	String aepNombre = aepTrozos[1];
+	            	String aepNombre = "";
+	            	for (int i = 1; i<aepTrozos.length; i++){
+	            		aepNombre += aepTrozos[i]+" ";
+	            	}
+	            	aepNombre = aepNombre.trim();
 	            	
 	            	// Comprobar si el vuelo ha tenido retraso (Delayed)
 	            	String[] estadoTrozos = estado.split(" ");

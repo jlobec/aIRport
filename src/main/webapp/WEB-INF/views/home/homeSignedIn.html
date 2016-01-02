@@ -16,36 +16,65 @@
         <!-- /* The message code is returned from the @Controller */ -->
         <div th:replace="fragments/alert :: alert (type=${#strings.toLowerCase(message.type)}, message=#{${message.message}(${#authentication.name})})">&nbsp;</div>
     </th:block>
-    <h2>
-        Dashboard
-    </h2>
-    <table style="display:none">
+    <h2 style="margin-bottom: 2%">Dashboard</h2>
+    <table class="airport" style="display:none">
     	<thead>
     	<tr>
     		<td>Airport</td>
-    		<td>Delays</td>
+    		<td>Departures</td>
+    		<td>Arrivals</td>
     	</tr>
     	</thead>
     	<tbody>
-    	<tr th:each="vuelo : ${datosvuelos}">
-    		<td class="n-1" th:text="${vuelo.campoClave}"></td>
-    		<td class="n-2" th:text="${vuelo.valor}"></td>
+    	<tr th:each="dato : ${datosvuelos}">
+    		<td class="n-1" th:text="${dato.nombre}"></td>
+    		<td class="n-2" th:text="${dato.valorDepartures}"></td>
+    		<td class="n-2" th:text="${dato.valorArrivals}"></td>
     	</tr>
     	</tbody>
     </table>
-   	<div id="table_div"></div>
+   
+   	
+   	
+   	<table class="company" style="display:none">
+    	<thead>
+    	<tr>
+    		<td>Company</td>
+    		<td>% delay over total</td>
+    	</tr>
+    	</thead>
+    	<tbody>
+    	<tr th:each="dato : ${datoscomps}">
+    		<td class="n-1" th:text="${dato.nombre}"></td>
+    		<td class="n-2" th:text="${dato.porcentRetrasos}"></td>
+    	</tr>
+    	</tbody>
+    </table>
+    
+    <div>
+    	<div style="margin-bottom: 2%" id="table_airport_div"></div>
+    	<br/><br/>
+    	<div style="margin-bottom: 2%" id="table_company_div"></div>	
+    </div>
+    
+   	
     
 </div>
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript" th:inline="javascript">
 	
 	google.load("visualization", "1", {packages:["corechart"]});
-	google.setOnLoadCallback(drawVisualization);          
+	google.setOnLoadCallback(setUpGraphs);          
     
-	function drawVisualization() {
+	function setUpGraphs(){
+		drawAirportVisualization();
+		drawCompanyVisualization();
+	}
+	
+	function drawAirportVisualization() {
     	  var values = []; // to hold our values for data table
     	  // get our values
-    	  $('table tr').each(function(i, v){
+    	  $('table.airport tr').each(function(i, v){
     	    values[i] = [];
     	    // select either th or td, doesn't matter
     	    $(this).children('td').each(function(ii, vv){
@@ -59,16 +88,45 @@
     	  });
     	  // convert 2d array to dataTable and draw
     	  var data = google.visualization.arrayToDataTable(values);
-    	  var table = new google.visualization.ColumnChart(document.getElementById('table_div'));
+    	  var table = new google.visualization.ColumnChart(document.getElementById('table_airport_div'));
     	  table.draw(data, {
-    		  title:"Airport overview",
+    		  title:"Airport Delay Overview",
     		  width: 800,
     		  height: 600,
+    		  isStacked: true,
     		  haxis: {
     			  title: "Flights delayed"
     		  }
     	  });
-    	}
+    }
+	
+	function drawCompanyVisualization() {
+  	  var values = []; // to hold our values for data table
+  	  // get our values
+  	  $('table.company tr').each(function(i, v){
+  	    values[i] = [];
+  	    // select either th or td, doesn't matter
+  	    $(this).children('td').each(function(ii, vv){
+  	        
+  	        if ($(this).hasClass('n-2')){
+  	        	values[i][ii] = parseFloat($(this).html());
+  	        } else {
+  	        	values[i][ii] = $(this).html();
+  	        }
+  	    });
+  	  });
+  	  // convert 2d array to dataTable and draw
+  	  var data = google.visualization.arrayToDataTable(values);
+  	  var table = new google.visualization.BarChart(document.getElementById('table_company_div'));
+  	  table.draw(data, {
+  		  title:"Company Delay Overview",
+  		  width: 800,
+  		  height: 600,
+  		  haxis: {
+  			  title: "% Flights delayed"
+  		  }
+  	  });
+  	}
     
 </script>
 

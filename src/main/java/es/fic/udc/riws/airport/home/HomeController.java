@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import es.fic.udc.riws.airport.flight.FlightRepository;
-import es.fic.udc.riws.airport.flight.FlightResult;
+import es.fic.udc.riws.airport.flight.FlightResultAirportDto;
+import es.fic.udc.riws.airport.flight.FlightResultCompanyDto;
 
 
 @Controller
@@ -27,9 +28,16 @@ public class HomeController {
 		if (principal == null){
 			return "home/homeNotSignedIn";
 		}
-		List<FlightResult> datosVuelos = flightRepository.findMostDelayed("aeropuerto_nombre");
-		List<FlightResult> subset = datosVuelos.subList(0, 10);
+		
+		//Grafica barras (retrasos por aeropuerto)
+		List<FlightResultAirportDto> datosVuelos = flightRepository.findMostDelayedAirports();
+		List<FlightResultAirportDto> subset = datosVuelos.subList(0, 10);
 		model.addAttribute("datosvuelos", subset);
+		
+		//Grafica companias
+		List<FlightResultCompanyDto> datosCompanias = flightRepository.findMostDelayedCompanies();
+		List<FlightResultCompanyDto> subsetC = datosCompanias.subList(0, 10);
+		model.addAttribute("datoscomps", subsetC);
 		
 		return "home/homeSignedIn";
 	}

@@ -17,6 +17,7 @@ public class IndexingController {
 		try{
 			FlightIndexing.doIndex();
 		} catch (Exception e){
+			e.printStackTrace();
 			return "{'indexing': 'ko'}";
 		}
 		return "{'indexing': 'ok'}";
