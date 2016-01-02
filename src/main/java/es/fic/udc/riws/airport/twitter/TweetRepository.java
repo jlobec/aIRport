@@ -1,12 +1,10 @@
-package es.fic.udc.riws.airport.flight;
+package es.fic.udc.riws.airport.twitter;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -24,14 +22,14 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@Transactional(readOnly=true)
-public class FlightRepository {
+@Transactional(readOnly = true)
+public class TweetRepository {
 
-	private static final String RUTA_INDEX = "/Users/Brais/Downloads/tmp/flightindex";
-	
-	public List<FlightResult> findMostDelayed(String campoClave) throws IOException, ParseException{
-		
-		Map<String, Integer> resultMap = new HashMap<String, Integer>();
+	private static final String RUTA_INDEX = "/Users/Brais/Downloads/tmp/tweetindex";
+
+	public List<Tweet> findByKeywords(String words) throws IOException, ParseException {
+
+		List<Tweet> result = new ArrayList<>();
 		
 		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_48);
 		Directory directory = FSDirectory.open(new File(RUTA_INDEX));
@@ -41,31 +39,20 @@ public class FlightRepository {
 		IndexSearcher isearcher = new IndexSearcher(ireader);
 		
 		// Parse a simple query that searches for "text":
-		QueryParser parser = new QueryParser(Version.LUCENE_48, "delayed", analyzer);
-		Query query = parser.parse("true");
+		QueryParser parser = new QueryParser(Version.LUCENE_48, "texto", analyzer);
+		Query query = parser.parse(words);
 		ScoreDoc[] hits = isearcher.search(query, null, 3000).scoreDocs;
 		
 		// Iterate through the results:
 		for (ScoreDoc hit : hits) {
 			Document hitDoc = isearcher.doc(hit.doc);
-			String key = hitDoc.get("aeropuerto_nombre");
-			if (resultMap.containsKey(key)){
-				Integer actual = resultMap.get(key);
-				resultMap.put(key, ++actual);
-			} else {
-				resultMap.put(key, 1);
-			}
+			String text = hitDoc.get("texto");
+			Date date = new Date();//new Date(hitDoc.get("date"));
+			result.add(new Tweet(text, date));
 		}
 		ireader.close();
 		directory.close();
 		
-		//Componer resultado
-		List<FlightResult> res = new ArrayList<FlightResult>();
-		
-		for (Entry<String, Integer> entry : resultMap.entrySet()) {
-			res.add(new FlightResult(entry.getKey(), entry.getValue()));
-		}
-		res.sort(FlightResult.Comparators.VALOR);
-		return res; 
+		return result;
 	}
 }

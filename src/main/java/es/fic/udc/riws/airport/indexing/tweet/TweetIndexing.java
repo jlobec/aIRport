@@ -25,12 +25,14 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
 public class TweetIndexing {
 
 	private static final String RUTA_ARCHIVOS = "/Users/Brais/Desktop/aIRport/tweets/";
+	private static final String RUTA_INDEX = "/Users/Brais/Downloads/tmp/tweetindex";
 
 	public static void doIndex() throws IOException, ParseException {
 
@@ -47,15 +49,13 @@ public class TweetIndexing {
 			br.close();
 		}
 
-		System.out.println(l.size());
-
 		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_48);
 
 		// Store the index in memory:
-		Directory directory = new RAMDirectory();
+		//Directory directory = new RAMDirectory();
 
 		// To store an index on disk, use this instead:
-		// Directory directory = FSDirectory.open("/tmp/testindex");
+		Directory directory = FSDirectory.open(new File(RUTA_INDEX));
 		IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_48, analyzer);
 		IndexWriter iwriter = new IndexWriter(directory, config);
 		
@@ -82,8 +82,8 @@ public class TweetIndexing {
 			}
 		}
 		iwriter.close();
-
-		/** Para probar : */
+		
+		/** Para probar : 
 		// Now search the index:
 		DirectoryReader ireader = DirectoryReader.open(directory);
 		IndexSearcher isearcher = new IndexSearcher(ireader);
@@ -102,7 +102,7 @@ public class TweetIndexing {
 					+ "query ’delay’:\n" + hitDoc.get("texto"));
 		}
 		ireader.close();
-		directory.close();
+		directory.close();*/
 
 	}
 
