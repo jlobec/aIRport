@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class FlightRepository {
 
-	private static final String RUTA_INDEX = "tmp/flightindexall";
+	private static final String RUTA_INDEX = "/Users/Brais/Downloads/tmp/flightindexall";
 
 	public List<FlightResultAirportDto> findMostDelayedAirports() throws IOException, ParseException {
 		Map<String, FlightResultAirportDto> resultMap = new HashMap<String, FlightResultAirportDto>();

@@ -55,4 +55,33 @@ public class TweetRepository {
 		
 		return result;
 	}
+	
+	public List<Tweet> findByKeywordsMatchingAll(String words) throws IOException, ParseException {
+
+		List<Tweet> result = new ArrayList<>();
+		
+		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_48);
+		Directory directory = FSDirectory.open(new File(RUTA_INDEX));
+
+		// Now search the index:
+		DirectoryReader ireader = DirectoryReader.open(directory);
+		IndexSearcher isearcher = new IndexSearcher(ireader);
+		
+		// Parse a simple query that searches for "text":
+		QueryParser parser = new QueryParser(Version.LUCENE_48, "texto", analyzer);
+		Query query = parser.parse("\"" + words + "\"");
+		ScoreDoc[] hits = isearcher.search(query, null, 3000).scoreDocs;
+		
+		// Iterate through the results:
+		for (ScoreDoc hit : hits) {
+			Document hitDoc = isearcher.doc(hit.doc);
+			String text = hitDoc.get("texto");
+			Date date = new Date();//new Date(hitDoc.get("date"));
+			result.add(new Tweet(text, date));
+		}
+		ireader.close();
+		directory.close();
+		
+		return result;
+	}
 }
