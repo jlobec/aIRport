@@ -16,9 +16,61 @@
         <!-- /* The message code is returned from the @Controller */ -->
         <div th:replace="fragments/alert :: alert (type=${#strings.toLowerCase(message.type)}, message=#{${message.message}(${#authentication.name})})">&nbsp;</div>
     </th:block>
-    <p>
-        Welcome to the Spring MVC Quickstart application!
-    </p>
+    <h2>
+        Dashboard
+    </h2>
+    <table style="display:none">
+    	<thead>
+    	<tr>
+    		<td>Airport</td>
+    		<td>Delays</td>
+    	</tr>
+    	</thead>
+    	<tbody>
+    	<tr th:each="vuelo : ${datosvuelos}">
+    		<td class="n-1" th:text="${vuelo.campoClave}"></td>
+    		<td class="n-2" th:text="${vuelo.valor}"></td>
+    	</tr>
+    	</tbody>
+    </table>
+   	<div id="table_div"></div>
+    
 </div>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript" th:inline="javascript">
+	
+	google.load("visualization", "1", {packages:["corechart"]});
+	google.setOnLoadCallback(drawVisualization);          
+    
+	function drawVisualization() {
+    	  var values = []; // to hold our values for data table
+    	  // get our values
+    	  $('table tr').each(function(i, v){
+    	    values[i] = [];
+    	    // select either th or td, doesn't matter
+    	    $(this).children('td').each(function(ii, vv){
+    	        
+    	        if ($(this).hasClass('n-2')){
+    	        	values[i][ii] = parseInt($(this).html());
+    	        } else {
+    	        	values[i][ii] = $(this).html();
+    	        }
+    	    });
+    	  });
+    	  // convert 2d array to dataTable and draw
+    	  var data = google.visualization.arrayToDataTable(values);
+    	  var table = new google.visualization.ColumnChart(document.getElementById('table_div'));
+    	  table.draw(data, {
+    		  title:"Airport overview",
+    		  width: 800,
+    		  height: 600,
+    		  haxis: {
+    			  title: "Flights delayed"
+    		  }
+    	  });
+    	}
+    
+</script>
+
 </body>
 </html>

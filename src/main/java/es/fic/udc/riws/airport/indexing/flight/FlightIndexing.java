@@ -1,6 +1,7 @@
 package es.fic.udc.riws.airport.indexing.flight;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,16 +15,11 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
 
@@ -32,6 +28,7 @@ public class FlightIndexing {
 
 	//Subconjunto de todos los documentos con 20 documentos aprox. para ir probando
 	private static final String RUTA_ARCHIVOS = "/home/jesus/flights_parsed/subset";
+	private static final String RUTA_INDEX = "tmp/flightindex";
 	
 	public static void doIndex() throws IOException, ParseException{
 		
@@ -40,10 +37,10 @@ public class FlightIndexing {
 		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_48);
 		
 		// Store the index in memory:
-		Directory directory = new RAMDirectory();
+		//Directory directory = new RAMDirectory();
 		
 		// To store an index on disk, use this instead:
-		// Directory directory = FSDirectory.open("/tmp/testindex");
+		Directory directory = FSDirectory.open(new File(RUTA_INDEX));
 		IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_48, analyzer);
 		IndexWriter iwriter = new IndexWriter(directory, config);
 		
@@ -98,26 +95,6 @@ public class FlightIndexing {
 			
 		}
         iwriter.close();
-		
-		/** Para probar : */
-		// Now search the index:
-		DirectoryReader ireader = DirectoryReader.open(directory);
-		IndexSearcher isearcher = new IndexSearcher(ireader);
-		
-		// Parse a simple query that searches for "text":
-		QueryParser parser = new QueryParser(Version.LUCENE_48, "aeropuerto_nombre", analyzer);
-		Query query = parser.parse("palma");
-		ScoreDoc[] hits = isearcher.search(query, null, 1000).scoreDocs;
-		
-		// Iterate through the results:
-		for (ScoreDoc hit : hits) {
-			Document hitDoc = isearcher.doc(hit.doc);
-			System.out.println(
-			"This is the text of the indexed document that was a result for the "
-			+ "query ’palma’:\n"
-			+ hitDoc.get("aeropuerto_nombre"));
-		}
-		ireader.close();
 		directory.close();
 		
 	}
