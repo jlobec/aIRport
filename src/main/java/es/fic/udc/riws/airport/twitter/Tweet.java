@@ -32,7 +32,6 @@ public class Tweet {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + ((text == null) ? 0 : text.hashCode());
 		return result;
 	}
@@ -46,11 +45,6 @@ public class Tweet {
 		if (getClass() != obj.getClass())
 			return false;
 		Tweet other = (Tweet) obj;
-		if (date == null) {
-			if (other.date != null)
-				return false;
-		} else if (!date.equals(other.date))
-			return false;
 		if (text == null) {
 			if (other.text != null)
 				return false;

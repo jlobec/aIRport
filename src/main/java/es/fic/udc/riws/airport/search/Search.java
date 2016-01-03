@@ -20,7 +20,7 @@ public class Search {
 
 	@Autowired
 	TweetRepository tweetRepository;
-	
+
 	@Autowired
 	FlightRepository flightRepository;
 
@@ -31,7 +31,9 @@ public class Search {
 		model.addAttribute(new SearchForm());
 		if (query != null) {
 			try {
-				model.addAttribute("tweets", tweetRepository.findByKeywords(query));
+				String queryFiltered = query.replace("company:", "").replace("airport:", "").replace("flightcode:", "");
+				queryFiltered = queryFiltered.trim().replaceAll("\\s+?", " AND ");
+				model.addAttribute("tweets", tweetRepository.findByKeywords(queryFiltered));
 				model.addAttribute("query", query);
 				model.addAttribute("datosvuelos", flightRepository.findByCriteria(query));
 			} catch (Exception e) {

@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -25,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class TweetRepository {
 
-	private static final String RUTA_INDEX = "/home/jesus/Escritorio/tweetindex";
+	private static final String RUTA_INDEX = "/Users/Brais/Downloads/tmp/tweetindex";
 
 	public List<Tweet> findByKeywords(String words) throws IOException, ParseException {
 
@@ -53,7 +55,7 @@ public class TweetRepository {
 		ireader.close();
 		directory.close();
 		
-		return result;
+		return removeDuplicates(result);
 	}
 	
 	public List<Tweet> findByKeywordsMatchingAll(String words) throws IOException, ParseException {
@@ -82,6 +84,16 @@ public class TweetRepository {
 		ireader.close();
 		directory.close();
 		
-		return result;
+		return removeDuplicates(result);
+	}
+	
+	
+	private List<Tweet> removeDuplicates(List<Tweet> list) {
+		 
+		Set<Tweet> hs = new HashSet<>();
+		hs.addAll(list);
+		list.clear();
+		list.addAll(hs);
+		return list;
 	}
 }

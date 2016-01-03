@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class FlightRepository {
 
-	private static final String RUTA_INDEX = "/home/jesus/tmp/flightindexwithdate";
+	private static final String RUTA_INDEX = "/Users/Brais/Downloads/tmp/flightindexwithdate";
 	private static final String AIRPORT_CRITERIA = "airport";
 	private static final String FLIGHTCODE_CRITERIA = "flightcode";
 	private static final String COMPANY_CRITERIA = "company";
