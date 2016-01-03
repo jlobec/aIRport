@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -34,8 +36,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class FlightRepository {
 
-	private static final String RUTA_INDEX = "/Users/Brais/Downloads/tmp/flightindexwithdate";
-	private static final String AIRPORT_CRITERIA = "airport";
+	private static final String RUTA_INDEX = "/home/jesus/tmp/flightindexwithdate";
+	private static final String AIRPORT_NAME_CRITERIA = "airport";
+	private static final String AIRPORT_CODE_CRITERIA = "airportcode";
 	private static final String FLIGHTCODE_CRITERIA = "flightcode";
 	private static final String COMPANY_CRITERIA = "company";
 
@@ -179,41 +182,64 @@ public class FlightRepository {
 		List<Query> userQueries = new ArrayList<Query>();
 		List<FlightResultAirportDto> res = new ArrayList<FlightResultAirportDto>();
 		SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+		Map<String, String> claveValorQuery = new HashMap<String, String>();
 		
 		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_48);
 		Directory directory = FSDirectory.open(new File(RUTA_INDEX));
 		
-		//Ver criterios de busqueda
-		String[] criterios = criteria.trim().split(" ");
-		int critLength = criterios.length;
-		for (int i = 0; i<critLength; i++){
-			String[] critSplitted = criterios[i].split(":");
-			if (critSplitted.length > 1){
-				QueryParser userQParser;
-				//Ver el tipo de criterio
-				if (AIRPORT_CRITERIA.equalsIgnoreCase(critSplitted[0].trim())){
-					userQParser = new QueryParser(Version.LUCENE_48, "aeropuerto_nombre", analyzer);
-					Query userQuery = userQParser.parse(critSplitted[1].trim());
-					userQueries.add(userQuery);
-				}
-				if (FLIGHTCODE_CRITERIA.equalsIgnoreCase(critSplitted[0])){
-					userQParser = new QueryParser(Version.LUCENE_48, "codigovuelo", analyzer);
-					Query userQuery = userQParser.parse(critSplitted[1].trim());
-					userQueries.add(userQuery);
-				}
-				if (COMPANY_CRITERIA.equalsIgnoreCase(critSplitted[0])){
-					userQParser = new QueryParser(Version.LUCENE_48, "compania", analyzer);
-					Query userQuery = userQParser.parse(critSplitted[1].trim());
-					userQueries.add(userQuery);
-				}
-				
-				
+		/** Parseo de los criterios */
+		String claveAnterior = null;
+		List<String> keywords = getValues(criteria);
+		for (String word : keywords){
+			
+			word = word.trim().replaceAll("\"", "");
+			// Tres opciones: 
+			// (1) clave:valor
+			// (2) clave:
+			// (3) valor (de la anterior clave)
+			String[] trozos = word.split(":");
+			//Si queda clave valor
+			if (trozos.length > 1){
+				claveValorQuery.put(trozos[0], trozos[1]);
+				claveAnterior = null;
 			} else {
-				//Error en la forma
-				return res;
+				if (claveAnterior != null){
+					claveValorQuery.put(claveAnterior, trozos[0]);
+					claveAnterior = null;
+				} else {
+					claveAnterior = trozos[0];
+				}
 			}
 		}
 		
+		for (Entry<String, String> entry : claveValorQuery.entrySet()) {
+			String clave = entry.getKey();
+			String valor = entry.getValue();
+			QueryParser userQParser;
+			//Ver el tipo de criterio
+			if (AIRPORT_NAME_CRITERIA.equalsIgnoreCase(clave)){
+				userQParser = new QueryParser(Version.LUCENE_48, "aeropuerto_nombre", analyzer);
+				Query userQuery = userQParser.parse(valor);
+				userQueries.add(userQuery);
+			}
+			if (AIRPORT_CODE_CRITERIA.equalsIgnoreCase(clave)){
+				userQParser = new QueryParser(Version.LUCENE_48, "aeropuerto_codigo", analyzer);
+				Query userQuery = userQParser.parse(valor);
+				userQueries.add(userQuery);
+			}
+			if (FLIGHTCODE_CRITERIA.equalsIgnoreCase(clave)){
+				userQParser = new QueryParser(Version.LUCENE_48, "codigovuelo", analyzer);
+				String codigoVuelo = valor.substring(0, 2)+" "+valor.substring(2, valor.length());
+				Query userQuery = userQParser.parse(codigoVuelo);
+				userQueries.add(userQuery);
+			}
+			if (COMPANY_CRITERIA.equalsIgnoreCase(clave)){
+				userQParser = new QueryParser(Version.LUCENE_48, "compania", analyzer);
+				Query userQuery = userQParser.parse(valor);
+				userQueries.add(userQuery);
+			}
+		}
+				
 		// Now search the index:
 		DirectoryReader ireader = DirectoryReader.open(directory);
 		IndexSearcher isearcher = new IndexSearcher(ireader);
@@ -299,6 +325,16 @@ public class FlightRepository {
 	
 	private static String buildDate(long time) {
         return DateTools.dateToString(new Date(time), Resolution.SECOND);
+    }
+	
+	private List<String> getValues(String input) {
+        List<String> matchList = new ArrayList<>();
+        Pattern regex = Pattern.compile("[^\\s\"']+|\"[^\"]*\"|'[^']*'");
+        Matcher regexMatcher = regex.matcher(input);
+        while (regexMatcher.find()) {
+            matchList.add(regexMatcher.group());
+        }
+        return matchList;
     }
 	
 	

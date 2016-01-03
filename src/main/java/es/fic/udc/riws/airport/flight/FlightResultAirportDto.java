@@ -47,12 +47,15 @@ public class FlightResultAirportDto implements Comparable<FlightResultAirportDto
 		public static Comparator<FlightResultAirportDto> VALORES = new Comparator<FlightResultAirportDto>() {
 			@Override
 			public int compare(FlightResultAirportDto o1, FlightResultAirportDto o2) {
-				int primeraComp = o2.getValorDepartures().compareTo(o1.getValorDepartures());
-				if  ( primeraComp != 0){
-					return primeraComp;
-				} else {
-					return o2.getValorArrivals().compareTo(o1.getValorArrivals());
-				}
+				Integer b = o2.getValorDepartures()+o2.getValorArrivals();
+				Integer a = o1.getValorDepartures()+o1.getValorArrivals();
+				return b.compareTo(a);
+//				int primeraComp = o2.getValorDepartures().compareTo(o1.getValorDepartures());
+//				if  ( primeraComp != 0){
+//					return primeraComp;
+//				} else {
+//					return o2.getValorArrivals().compareTo(o1.getValorArrivals());
+//				}
 			}
 		};
 	}

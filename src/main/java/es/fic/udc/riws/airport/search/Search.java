@@ -1,6 +1,7 @@
 package es.fic.udc.riws.airport.search;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.security.Principal;
 
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -36,7 +37,7 @@ public class Search {
 								
 				model.addAttribute("tweets", tweetRepository.findByKeywords(result));
 				model.addAttribute("query", query);
-				//model.addAttribute("datosvuelos", flightRepository.findByCriteria(query));
+				model.addAttribute("datosvuelos", flightRepository.findByCriteria(query));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -75,6 +76,6 @@ public class Search {
 	public String search(Principal principal, @ModelAttribute SearchForm searchForm)
 			throws IOException, ParseException {
 
-		return "redirect:/search?query=" + searchForm.getText();
+		return "redirect:/search?query=" + URLEncoder.encode(searchForm.getText(), "UTF-8");
 	}
 }
