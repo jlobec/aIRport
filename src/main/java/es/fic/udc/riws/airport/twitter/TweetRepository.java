@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class TweetRepository {
 
-	private static final String RUTA_INDEX = "/Users/Brais/Downloads/tmp/tweetindex";
+	private static final String RUTA_INDEX = "/home/jesus/Escritorio/tweetindex";
 
 	public List<Tweet> findByKeywords(String words) throws IOException, ParseException {
 

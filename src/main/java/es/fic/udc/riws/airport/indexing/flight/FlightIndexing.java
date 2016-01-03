@@ -6,15 +6,20 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.DateTools.Resolution;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -28,9 +33,9 @@ public class FlightIndexing {
 
 	//Subconjunto de todos los documentos con 20 documentos aprox. para ir probando
 	private static final String RUTA_ARCHIVOS = "/home/jesus/flights_parsed";
-	private static final String RUTA_INDEX = "tmp/flightindexall";
+	private static final String RUTA_INDEX = "tmp/flightindexwithdate";
 	
-	public static void doIndex() throws IOException, ParseException{
+	public static void doIndex() throws IOException, ParseException {
 		
 		List<String> files = new ArrayList<String>();
 		
@@ -61,7 +66,13 @@ public class FlightIndexing {
 	            	String codigoVuelo = trozos[0].trim();
 	            	String compania = trozos[1].trim();
 	            	String aeropuerto = trozos[2].trim();
+	            	//Tratar fecha
 	            	String fecha = trozos[3].trim();
+	            	try {
+						fecha = buildLuceneDate(fecha);
+					} catch (java.text.ParseException e) {
+						continue;
+					}
 	            	String estado = trozos[4].trim();
 	            	String tipoVuelo = trozos[5].trim();
 	            	
@@ -88,7 +99,11 @@ public class FlightIndexing {
 	            	doc.add(new TextField("compania", compania, Field.Store.YES));
 	            	doc.add(new StringField("aeropuerto_codigo", aepCodigo, Field.Store.YES));
 	            	doc.add(new TextField("aeropuerto_nombre", aepNombre, Field.Store.YES));
-	            	doc.add(new StringField("fecha", fecha, Field.Store.YES));
+	            	
+	            	doc.add(new Field("fecha", fecha, Field.Store.YES, Index.NOT_ANALYZED));
+//	            	doc.add(new StringField("fecha", fecha, Field.Store.YES));
+	            	
+	            	
 	            	doc.add(new StringField("estado", estado, Field.Store.YES));
 	            	doc.add(new StringField("delayed", delayed.toString(), Field.Store.NO));
 	            	doc.add(new StringField("tipoVuelo", tipoVuelo, Field.Store.NO));
@@ -101,6 +116,12 @@ public class FlightIndexing {
         iwriter.close();
 		directory.close();
 		
+	}
+	
+	private static String buildLuceneDate(String date) throws java.text.ParseException{
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm a");
+		Date fecha = sdf.parse(date);
+		return DateTools.dateToString(fecha, Resolution.SECOND);
 	}
 	
 	
