@@ -21,103 +21,106 @@
 				th:replace="fragments/alert :: alert (type=${#strings.toLowerCase(message.type)}, message=#{${message.message}(${#authentication.name})})">&nbsp;</div>
 		</th:block>
 
-		<form class="navbar-form" method="post" th:action="@{/search}"
-			th:object="${searchForm}">
-			<div class="form-group">
-				<input id="text" th:field="*{text}" type="text" class="form-control"
-					placeholder="Search"> </input>
-			</div>
-			<button type="submit" class="btn btn-default">Submit</button>
-		</form>
-		
-	<!-- GRAFICA -->
-	<div th:if="${datosvuelos}">
-		<h2>Search results for</h2>
-		<h2 style="margin-bottom: 2%" th:text="${query}"></h2>
-	</div>
-	<div th:unless="${datosvuelos}">
-		<h4>Nothing to show yet.</h4>
-	</div>
-	
-    <table class="airport" style="display:none">
-    	<thead>
-    	<tr>
-    		<td>Query</td>
-    		<td>Delayed departures</td>
-    		<td>Delayed arrivals</td>
-    	</tr>
-    	</thead>
-    	<tbody>
-    	<tr th:each="dato : ${datosvuelos}">
-    		<td class="n-1" th:text="${dato.nombre}"></td>
-    		<td class="n-2" th:text="${dato.valorDepartures}"></td>
-    		<td class="n-2" th:text="${dato.valorArrivals}"></td>
-    	</tr>
-    	</tbody>
-    </table>
-    
-    <div>
-    	<div style="margin-bottom: 2%" id="table_airport_div"></div>
-    	<br/><br/>
-    	<div style="margin-bottom: 2%" id="table_company_div"></div>	
-    </div>
-    
-    <!--// GRAFICA -->
-    <div th:if="${tweets}">
-	<h2 style="margin-bottom: 2%">Related Tweets</h2>
-	</div>
-	<div class="table-responsive">
-		<table class="table">
-			<tr th:each="tweet : ${tweets}">
-				<td th:text="${tweet.text}" class="list-group-item"></td>
-			</tr>
+		<div id="centerForm">
+			<form class="navbar-form" method="post" th:action="@{/search}"
+				th:object="${searchForm}">
+				<div class="form-group">
+					<input id="text" th:field="*{text}" type="text"
+						class="form-control" placeholder="Search"> </input>
+				</div>
+				<button type="submit" class="btn btn-default">Submit</button>
+			</form>
+		</div>
+
+		<table class="airport" style="display: none">
+			<thead>
+				<tr>
+					<td>Query</td>
+					<td>Delayed departures</td>
+					<td>Delayed arrivals</td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="dato : ${datosvuelos}">
+					<td class="n-1" th:text="${dato.nombre}"></td>
+					<td class="n-2" th:text="${dato.valorDepartures}"></td>
+					<td class="n-2" th:text="${dato.valorArrivals}"></td>
+				</tr>
+			</tbody>
 		</table>
+
+		<div>
+			<div id="left">
+				<!-- GRAFICA -->
+				<div th:if="${datosvuelos}">
+					<h2>Search results for</h2>
+					<h2 style="margin-bottom: 2%" th:text="${query}"></h2>
+				</div>
+				<div th:unless="${datosvuelos}">
+					<h4>Nothing to show yet.</h4>
+				</div>
+				<div style="margin-bottom: 2%" id="table_airport_div"></div>
+			</div>
+			<div id="right">
+				<div th:if="${tweets}">
+					<h2 style="margin-bottom: 2%">Related Tweets</h2>
+				</div>
+				<div class="table-responsive">
+					<table class="table">
+						<tr th:each="tweet : ${tweets}">
+							<td th:text="${tweet.text}" class="list-group-item"></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+
+
 	</div>
-	</div>
-	
-	
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script type="text/javascript" th:inline="javascript">
-	
-	google.load("visualization", "1", {packages:["corechart"]});
-	google.setOnLoadCallback(setUpGraphs);   
-    
-	function setUpGraphs(){
-		drawAirportVisualization();
-		if (!$('table.airport tbody tr').length){
-			$('#table_airport_div').hide();	
+	<div th:replace="fragments/footer :: footer">&copy;</div>
+
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	<script type="text/javascript" th:inline="javascript">
+		google.load("visualization", "1", {
+			packages : [ "corechart" ]
+		});
+		google.setOnLoadCallback(setUpGraphs);
+
+		function setUpGraphs() {
+			drawAirportVisualization();
+			if (!$('table.airport tbody tr').length) {
+				$('#table_airport_div').hide();
+			}
 		}
-	}
-	
-	function drawAirportVisualization() {
-    	  var values = []; // to hold our values for data table
-    	  // get our values
-    	  $('table.airport tr').each(function(i, v){
-    	    values[i] = [];
-    	    // select either th or td, doesn't matter
-    	    $(this).children('td').each(function(ii, vv){
-    	        
-    	        if ($(this).hasClass('n-2')){
-    	        	values[i][ii] = parseInt($(this).html());
-    	        } else {
-    	        	values[i][ii] = $(this).html();
-    	        }
-    	    });
-    	  });
-    	  // convert 2d array to dataTable and draw
-    	  var data = google.visualization.arrayToDataTable(values);
-    	  var table = new google.visualization.ColumnChart(document.getElementById('table_airport_div'));
-    	  table.draw(data, {
-    		  title:"Dates with most delayed flights",
-    		  width: 800,
-    		  height: 600,
-    		  isStacked: true,
-    		  haxis: {
-    			  title: "Flights delayed"
-    		  }
-    	  });
-    }
-    
-</script>	
+
+		function drawAirportVisualization() {
+			var values = []; // to hold our values for data table
+			// get our values
+			$('table.airport tr').each(function(i, v) {
+				values[i] = [];
+				// select either th or td, doesn't matter
+				$(this).children('td').each(function(ii, vv) {
+
+					if ($(this).hasClass('n-2')) {
+						values[i][ii] = parseInt($(this).html());
+					} else {
+						values[i][ii] = $(this).html();
+					}
+				});
+			});
+			// convert 2d array to dataTable and draw
+			var data = google.visualization.arrayToDataTable(values);
+			var table = new google.visualization.ColumnChart(document
+					.getElementById('table_airport_div'));
+			table.draw(data, {
+				title : "Dates with most delayed flights",
+				height : 500,
+				isStacked : true,
+				haxis : {
+					title : "Flights delayed"
+				}
+			});
+		}
+	</script>
 </body>
 </html>
