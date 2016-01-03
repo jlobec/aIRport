@@ -32,17 +32,44 @@ public class Search {
 		if (query != null) {
 			try {
 				String queryFiltered = query.replace("company:", "").replace("airport:", "").replace("flightcode:", "");
-				queryFiltered = queryFiltered.trim().replaceAll("\\s+?", " AND ");
-				model.addAttribute("tweets", tweetRepository.findByKeywords(queryFiltered));
+				String result = formatQuery(queryFiltered.split(" "));
+								
+				model.addAttribute("tweets", tweetRepository.findByKeywords(result));
 				model.addAttribute("query", query);
-				model.addAttribute("datosvuelos", flightRepository.findByCriteria(query));
+				//model.addAttribute("datosvuelos", flightRepository.findByCriteria(query));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 
-		return "search/search";
+	return"search/search";
+
 	}
+
+	private String formatQuery(String[] split) {
+		String result = "";
+		for (String string : split) {
+			if (string.startsWith("\"")) {
+				if (result.isEmpty()) {
+					result = result + string + " ";
+				} else {
+					result = result + " AND " + string + " ";
+				}
+			} else {
+				if (string.endsWith("\"")) {
+					result = result + string;
+				} else {
+					if (result.isEmpty()) {
+						result = result + string;
+					} else {
+						result = result + " AND " + string;
+					}
+				}
+			}
+		}
+		return result;
+	}
+
 
 	@RequestMapping(value = "/search", method = RequestMethod.POST)
 	public String search(Principal principal, @ModelAttribute SearchForm searchForm)
