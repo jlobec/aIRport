@@ -3,7 +3,12 @@ package es.fic.udc.riws.airport.search;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +43,11 @@ public class Search {
 				String result = formatQuery(queryFiltered.split(" "));
 				
 				List<Tweet> tweetList = tweetRepository.findByKeywords(result);
-				model.addAttribute("tweets", tweetList.subList(0, Math.min(tweetList.size(), 10)));
+
+				long seed = System.nanoTime();
+				Collections.shuffle(tweetList, new Random(seed));
+				
+				model.addAttribute("tweets", tweetList.subList(0, Math.min(10, tweetList.size())));
 				model.addAttribute("query", query);
 				model.addAttribute("datosvuelos", flightRepository.findByCriteria(query));
 			} catch (Exception e) {
