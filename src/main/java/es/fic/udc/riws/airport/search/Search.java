@@ -3,6 +3,7 @@ package es.fic.udc.riws.airport.search;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.security.Principal;
+import java.util.List;
 
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import es.fic.udc.riws.airport.flight.FlightRepository;
+import es.fic.udc.riws.airport.twitter.Tweet;
 import es.fic.udc.riws.airport.twitter.TweetRepository;
 
 @Controller
@@ -34,8 +36,9 @@ public class Search {
 			try {
 				String queryFiltered = query.replace("company:", "").replace("airport:", "").replace("flightcode:", "");
 				String result = formatQuery(queryFiltered.split(" "));
-								
-				model.addAttribute("tweets", tweetRepository.findByKeywords(result));
+				
+				List<Tweet> tweetList = tweetRepository.findByKeywords(result);
+				model.addAttribute("tweets", tweetList.subList(0, Math.min(tweetList.size(), 10)));
 				model.addAttribute("query", query);
 				model.addAttribute("datosvuelos", flightRepository.findByCriteria(query));
 			} catch (Exception e) {
@@ -47,6 +50,13 @@ public class Search {
 
 	}
 
+	@RequestMapping(value = "/search", method = RequestMethod.POST)
+	public String search(Principal principal, @ModelAttribute SearchForm searchForm)
+			throws IOException, ParseException {
+
+		return "redirect:/search?query=" + URLEncoder.encode(searchForm.getText(), "UTF-8");
+	}
+	
 	private String formatQuery(String[] split) {
 		String result = "";
 		for (String string : split) {
@@ -71,11 +81,4 @@ public class Search {
 		return result;
 	}
 
-
-	@RequestMapping(value = "/search", method = RequestMethod.POST)
-	public String search(Principal principal, @ModelAttribute SearchForm searchForm)
-			throws IOException, ParseException {
-
-		return "redirect:/search?query=" + URLEncoder.encode(searchForm.getText(), "UTF-8");
-	}
 }

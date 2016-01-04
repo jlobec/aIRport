@@ -5,6 +5,7 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,38 +65,52 @@ public class HomeController {
 			List<FlightResultAirportDto> subset) {
 
 		List<Tweet> tweets = new ArrayList<>();
+		List<Tweet> tweetList;
+		Random rand = new Random();
 		try {
-			tweets.add(tweetRepository.findByKeywordsMatchingAll(subset.get(0).getNombre()).get(0));
+			tweetList = tweetRepository.findByKeywordsMatchingAll(subset.get(0).getNombre());
+			int random = rand.nextInt(tweetList.size() - 1);
+			tweets.add(tweetList.get(random));
 		} catch (Exception e) {
 			tweets.add(new Tweet("", new Date()));
 		}
 
 		try {
-			tweets.add(tweetRepository.findByKeywordsMatchingAll(subset.get(1).getNombre()).get(0));
+			tweetList = tweetRepository.findByKeywordsMatchingAll(subset.get(1).getNombre());
+			int random = rand.nextInt(tweetList.size() - 1);
+			tweets.add(tweetList.get(random));
 		} catch (Exception e) {
 			tweets.add(new Tweet("", new Date()));
 		}
 
 		try {
-			tweets.add(tweetRepository.findByKeywordsMatchingAll(subset.get(2).getNombre()).get(0));
+			tweetList = tweetRepository.findByKeywordsMatchingAll(subset.get(2).getNombre());
+			int random = rand.nextInt(tweetList.size() - 1);
+			tweets.add(tweetList.get(random));
 		} catch (Exception e) {
 			tweets.add(new Tweet("", new Date()));
 		}
 
 		try {
-			tweets.add(tweetRepository.findByKeywordsMatchingAll(subsetC.get(0).getNombre()).get(0));
+			tweetList = tweetRepository.findByKeywordsMatchingAll(subsetC.get(0).getNombre());
+			int random = rand.nextInt(tweetList.size() - 1);
+			tweets.add(tweetList.get(random));
 		} catch (Exception e) {
 			tweets.add(new Tweet("", new Date()));
 		}
 
 		try {
-			tweets.add(tweetRepository.findByKeywordsMatchingAll(subsetC.get(1).getNombre()).get(0));
+			tweetList = tweetRepository.findByKeywordsMatchingAll(subsetC.get(1).getNombre());
+			int random = rand.nextInt(tweetList.size() - 1);
+			tweets.add(tweetList.get(random));
 		} catch (Exception e) {
 			tweets.add(new Tweet("", new Date()));
 		}
 
 		try {
-			tweets.add(tweetRepository.findByKeywordsMatchingAll(subsetC.get(2).getNombre()).get(0));
+			tweetList = tweetRepository.findByKeywordsMatchingAll(subsetC.get(2).getNombre());
+			int random = rand.nextInt(tweetList.size() - 1);
+			tweets.add(tweetList.get(random));
 		} catch (Exception e) {
 			tweets.add(new Tweet("", new Date()));
 		}

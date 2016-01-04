@@ -14,6 +14,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
@@ -77,7 +78,7 @@ public class TweetIndexing {
 				doc.add(new TextField("usuario", usuario, Field.Store.YES));
 				doc.add(new TextField("texto", texto, Field.Store.YES));
 				//doc.add(new StringField("localizacion", localizacion, Field.Store.YES));
-				doc.add(new TextField("fecha", fecha, Field.Store.YES));
+				doc.add(new Field("fecha", fecha, Field.Store.YES, Index.NOT_ANALYZED));
 				iwriter.addDocument(doc);
 			}
 		}
