@@ -20,20 +20,20 @@
 			<div
 				th:replace="fragments/alert :: alert (type=${#strings.toLowerCase(message.type)}, message=#{${message.message}(${#authentication.name})})">&nbsp;</div>
 		</th:block>
-		<h2 style="margin-bottom: 2%">Dashboard</h2>
+		<h2 style="margin-bottom: 2%">Overview</h2>
 		<table class="airport" style="display: none">
 			<thead>
 				<tr>
 					<td>Airport</td>
-					<td>Departures</td>
-					<td>Arrivals</td>
+					<td>% delayed departures</td>
+					<td>% delayed arrivals</td>
 				</tr>
 			</thead>
 			<tbody>
 				<tr th:each="dato : ${datosvuelos}">
 					<td class="n-1" th:text="${dato.nombre}"></td>
-					<td class="n-2" th:text="${dato.valorDepartures}"></td>
-					<td class="n-2" th:text="${dato.valorArrivals}"></td>
+					<td class="n-2" th:text="${dato.porcentDepartures}"></td>
+					<td class="n-2" th:text="${dato.porcentArrivals}"></td>
 				</tr>
 			</tbody>
 		</table>
@@ -98,7 +98,7 @@
 				$(this).children('td').each(function(ii, vv) {
 
 					if ($(this).hasClass('n-2')) {
-						values[i][ii] = parseInt($(this).html());
+						values[i][ii] = parseFloat($(this).html());
 					} else {
 						values[i][ii] = $(this).html();
 					}
@@ -109,9 +109,9 @@
 			var table = new google.visualization.ColumnChart(document
 					.getElementById('table_airport_div'));
 			table.draw(data, {
-				title : "Airport Delay Overview",
+				title : "Airport mean delay percent",
 				height : 400,
-				isStacked : true,
+				//isStacked : true,
 				haxis : {
 					title : "Flights delayed"
 				}
@@ -138,7 +138,7 @@
 			var table = new google.visualization.BarChart(document
 					.getElementById('table_company_div'));
 			table.draw(data, {
-				title : "Company Delay Overview",
+				title : "Company mean delay percent",
 				height : 400,
 				haxis : {
 					title : "% Flights delayed"

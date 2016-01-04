@@ -2,6 +2,7 @@ package es.fic.udc.riws.airport.flight;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,8 +37,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class FlightRepository {
 
-	//private static final String RUTA_INDEX = "/home/jesus/tmp/flightindexwithdate";
-	private static final String RUTA_INDEX = "/Users/Brais/Downloads/tmp/flightindexwithdate";
+	private static final String RUTA_INDEX = "/home/jesus/tmp/flightindexwithdate";
+//	private static final String RUTA_INDEX = "/Users/Brais/Downloads/tmp/flightindexwithdate";
 	private static final String AIRPORT_NAME_CRITERIA = "airport";
 	private static final String AIRPORT_CODE_CRITERIA = "airportcode";
 	private static final String FLIGHTCODE_CRITERIA = "flightcode";
@@ -45,6 +46,8 @@ public class FlightRepository {
 
 	public List<FlightResultAirportDto> findMostDelayedAirports() throws IOException, ParseException {
 		Map<String, FlightResultAirportDto> resultMap = new HashMap<String, FlightResultAirportDto>();
+		Map<String, Integer> arrivalsMap = new HashMap<String, Integer>();
+		Map<String, Integer> departuresMap = new HashMap<String, Integer>();
 
 		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_48);
 		Directory directory = FSDirectory.open(new File(RUTA_INDEX));
@@ -78,15 +81,21 @@ public class FlightRepository {
 		QueryParser arrivalsParser = new QueryParser(Version.LUCENE_48, "tipoVuelo", analyzer);
 		Query arrivalsQuery = arrivalsParser.parse("arrivals");
 		
-		
-		
 		BooleanQuery arrivalsDelayedQuery = new BooleanQuery();
 		arrivalsDelayedQuery.add(delayQuery, Occur.MUST); 
 		arrivalsDelayedQuery.add(arrivalsQuery, Occur.MUST);
-//		arrivalsDelayedQuery.add(dateQuery, Occur.MUST);
 
 		ScoreDoc[] hitsArrivals = isearcher.search(arrivalsDelayedQuery, null, 3000).scoreDocs;
 		
+		/** Buscar todas las llegadas */
+		BooleanQuery allArrivalsQuery = new BooleanQuery();
+		allArrivalsQuery.add(arrivalsQuery, Occur.MUST);
+		ScoreDoc[] hitsAllArrivals = isearcher.search(allArrivalsQuery, null, 100000).scoreDocs;
+		
+		/** Buscar todas las salidas */
+		BooleanQuery allDeparturesQuery = new BooleanQuery();
+		allDeparturesQuery.add(departuresQuery, Occur.MUST);
+		ScoreDoc[] hitsAllDepartures = isearcher.search(allDeparturesQuery, null, 100000).scoreDocs;
 		
 		/** Iterar resultados */
 		for (ScoreDoc hit : hitsDepartures){
@@ -114,20 +123,63 @@ public class FlightRepository {
 				resultMap.put(key, nuevo);
 			}
 		}
+		
+		// Todas las salidas y llegadas
+		for (ScoreDoc hit : hitsAllArrivals) {
+			Document hitDoc = isearcher.doc(hit.doc);
+			String key = hitDoc.get("aeropuerto_nombre");
+			if (arrivalsMap.containsKey(key)) {
+				Integer actual = arrivalsMap.get(key);
+				arrivalsMap.put(key, ++actual);
+			} else {
+				arrivalsMap.put(key, 1);
+			}
+		}
+		
+		for (ScoreDoc hit : hitsAllDepartures) {
+			Document hitDoc = isearcher.doc(hit.doc);
+			String key = hitDoc.get("aeropuerto_nombre");
+			if (departuresMap.containsKey(key)) {
+				Integer actual = departuresMap.get(key);
+				departuresMap.put(key, ++actual);
+			} else {
+				departuresMap.put(key, 1);
+			}
+		}
 
 		ireader.close();
 		directory.close();
 		
 		// Componer resultado
 		List<FlightResultAirportDto> res = new ArrayList<FlightResultAirportDto>();
-
+		try{
 		for (Entry<String, FlightResultAirportDto> entry : resultMap.entrySet()) {
-			res.add(new FlightResultAirportDto(entry.getKey(), entry.getValue().getValorDepartures(), 
-					entry.getValue().getValorArrivals()));
+			Float totalArrivals = (arrivalsMap.get(entry.getKey()) != null) ? (float) arrivalsMap.get(entry.getKey()) : null;
+			Float delayedArrivals = (float) entry.getValue().getValorArrivals();
+			Float totalDepartures = (departuresMap.get(entry.getKey()) != null) ? (float) departuresMap.get(entry.getKey()) : null;
+			Float delayedDepartures = (float) entry.getValue().getValorDepartures();
+			
+			if (totalArrivals!= null && totalDepartures != null){
+				Float porcentArrivals = (delayedArrivals/totalArrivals) * 100;
+				Float porcentDepartures =  (delayedDepartures/totalDepartures) * 100;
+				FlightResultAirportDto f = new FlightResultAirportDto();
+				f.setNombre(entry.getKey());
+				f.setPorcentArrivals(porcentArrivals);
+				f.setPorcentDepartures(porcentDepartures);
+				f.setValorArrivals(entry.getValue().getValorArrivals());
+				f.setValorDepartures(entry.getValue().getValorDepartures());
+				res.add(f);
+			}
+//			res.add(new FlightResultAirportDto(entry.getKey(), entry.getValue().getValorDepartures(), 
+//					entry.getValue().getValorArrivals()));
 		}
+		
 		
 		res.sort(FlightResultAirportDto.Comparators.VALORES);
 		
+		} catch (Exception e){
+			e.printStackTrace();
+		}
 		return res;
 	}
 
@@ -184,6 +236,8 @@ public class FlightRepository {
 		List<FlightResultAirportDto> res = new ArrayList<FlightResultAirportDto>();
 		SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
 		Map<String, String> claveValorQuery = new HashMap<String, String>();
+		Map<String, Integer> arrivalsMap = new HashMap<String, Integer>();
+		Map<String, Integer> departuresMap = new HashMap<String, Integer>();
 		
 		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_48);
 		Directory directory = FSDirectory.open(new File(RUTA_INDEX));
@@ -258,7 +312,6 @@ public class FlightRepository {
 		for (Query q: userQueries){
 			departuresDelayedQuery.add(q, Occur.MUST);
 		}
-		
 		ScoreDoc[] hitsDepartures = isearcher.search(departuresDelayedQuery, null, 3000).scoreDocs;
 		
 		/** Buscar vuelos con retraso y que sean llegadas */
@@ -271,8 +324,25 @@ public class FlightRepository {
 		for (Query q: userQueries){
 			arrivalsDelayedQuery.add(q, Occur.MUST);
 		}
-
 		ScoreDoc[] hitsArrivals = isearcher.search(arrivalsDelayedQuery, null, 3000).scoreDocs;
+		
+		/** Buscar todas las llegadas */
+		BooleanQuery allArrivalsQuery = new BooleanQuery();
+		allArrivalsQuery.add(arrivalsQuery, Occur.MUST);
+		for (Query q: userQueries){
+			allArrivalsQuery.add(q, Occur.MUST);
+		}
+		ScoreDoc[] hitsAllArrivals = isearcher.search(allArrivalsQuery, null, 100000).scoreDocs;
+		
+		/** Buscar todas las salidas */
+		BooleanQuery allDeparturesQuery = new BooleanQuery();
+		allDeparturesQuery.add(departuresQuery, Occur.MUST);
+		for (Query q: userQueries){
+			allDeparturesQuery.add(q, Occur.MUST);
+		}
+		ScoreDoc[] hitsAllDepartures = isearcher.search(allDeparturesQuery, null, 100000).scoreDocs;
+
+		
 		
 		
 		/** Iterar resultados */
@@ -307,6 +377,35 @@ public class FlightRepository {
 				resultMap.put(keyMap, nuevo);
 			}
 		}
+		
+		// Todas las salidas y llegadas
+		for (ScoreDoc hit : hitsAllArrivals) {
+			Document hitDoc = isearcher.doc(hit.doc);
+			String key = hitDoc.get("fecha");
+			Date date = DateTools.stringToDate(key);
+			String dateFormat = df.format(date);
+			String keyMap = key.substring(0,8);
+			if (arrivalsMap.containsKey(keyMap)) {
+				Integer actual = arrivalsMap.get(keyMap);
+				arrivalsMap.put(keyMap, ++actual);
+			} else {
+				arrivalsMap.put(keyMap, 1);
+			}
+		}
+		
+		for (ScoreDoc hit : hitsAllDepartures) {
+			Document hitDoc = isearcher.doc(hit.doc);
+			String key = hitDoc.get("fecha");
+			Date date = DateTools.stringToDate(key);
+			String dateFormat = df.format(date);
+			String keyMap = key.substring(0,8);
+			if (departuresMap.containsKey(keyMap)) {
+				Integer actual = departuresMap.get(keyMap);
+				departuresMap.put(keyMap, ++actual);
+			} else {
+				departuresMap.put(keyMap, 1);
+			}
+		}
 
 		ireader.close();
 		directory.close();
@@ -315,18 +414,34 @@ public class FlightRepository {
 		
 
 		for (Entry<String, FlightResultAirportDto> entry : resultMap.entrySet()) {
-			res.add(new FlightResultAirportDto(entry.getValue().getNombre(), entry.getValue().getValorDepartures(), 
-					entry.getValue().getValorArrivals()));
+//			res.add(new FlightResultAirportDto(entry.getValue().getNombre(), entry.getValue().getValorDepartures(), 
+//					entry.getValue().getValorArrivals()));
+			
+			
+			Float totalArrivals = (arrivalsMap.get(entry.getKey()) != null) ? (float) arrivalsMap.get(entry.getKey()) : null;
+			Float delayedArrivals = (float) entry.getValue().getValorArrivals();
+			Float totalDepartures = (departuresMap.get(entry.getKey()) != null) ? (float) departuresMap.get(entry.getKey()) : null;
+			Float delayedDepartures = (float) entry.getValue().getValorDepartures();
+			
+			if (totalArrivals!= null && totalDepartures != null){
+				Float porcentArrivals = (delayedArrivals/totalArrivals) * 100;
+				Float porcentDepartures =  (delayedDepartures/totalDepartures) * 100;
+				FlightResultAirportDto f = new FlightResultAirportDto();
+				f.setNombre(entry.getValue().getNombre());
+				f.setPorcentArrivals(porcentArrivals);
+				f.setPorcentDepartures(porcentDepartures);
+				f.setValorArrivals(entry.getValue().getValorArrivals());
+				f.setValorDepartures(entry.getValue().getValorDepartures());
+				res.add(f);
+			}
+			
 		}
 		
 		res.sort(FlightResultAirportDto.Comparators.VALORES);
 		
 		return res;
 	}
-	
-	private static String buildDate(long time) {
-        return DateTools.dateToString(new Date(time), Resolution.SECOND);
-    }
+
 	
 	private List<String> getValues(String input) {
         List<String> matchList = new ArrayList<>();

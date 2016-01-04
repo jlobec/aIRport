@@ -36,15 +36,15 @@
 			<thead>
 				<tr>
 					<td>Query</td>
-					<td>Delayed departures</td>
-					<td>Delayed arrivals</td>
+					<td>% delayed departures</td>
+					<td>% delayed arrivals</td>
 				</tr>
 			</thead>
 			<tbody>
 				<tr th:each="dato : ${datosvuelos}">
 					<td class="n-1" th:text="${dato.nombre}"></td>
-					<td class="n-2" th:text="${dato.valorDepartures}"></td>
-					<td class="n-2" th:text="${dato.valorArrivals}"></td>
+					<td class="n-2" th:text="${dato.porcentDepartures}"></td>
+					<td class="n-2" th:text="${dato.porcentArrivals}"></td>
 				</tr>
 			</tbody>
 		</table>
@@ -102,7 +102,7 @@
 				$(this).children('td').each(function(ii, vv) {
 
 					if ($(this).hasClass('n-2')) {
-						values[i][ii] = parseInt($(this).html());
+						values[i][ii] = parseFloat($(this).html());
 					} else {
 						values[i][ii] = $(this).html();
 					}
@@ -113,9 +113,9 @@
 			var table = new google.visualization.ColumnChart(document
 					.getElementById('table_airport_div'));
 			table.draw(data, {
-				title : "Dates with most delayed flights",
+				title : "% delayed flights by date",
 				height : 500,
-				isStacked : true,
+// 				isStacked : true,
 				haxis : {
 					title : "Flights delayed"
 				}
