@@ -1,11 +1,11 @@
 package es.fic.udc.riws.airport.config;
 
-import org.junit.Before;
-import org.springframework.security.web.FilterChainProxy;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import javax.inject.Inject;
 
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import org.junit.Before;
+import org.springframework.security.web.FilterChainProxy;
 
 public abstract class WebSecurityConfigurationAware extends WebAppConfigurationAware {
 

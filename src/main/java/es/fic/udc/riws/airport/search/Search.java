@@ -3,11 +3,8 @@ package es.fic.udc.riws.airport.search;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import org.apache.lucene.queryparser.classic.ParseException;

@@ -26,7 +26,7 @@
 				th:object="${searchForm}">
 				<div class="form-group">
 					<input id="text" th:field="*{text}" type="text"
-						class="form-control" placeholder="Search"> </input>
+						class="form-control" placeholder="Search"></input>
 				</div>
 				<button type="submit" class="btn btn-default">Submit</button>
 			</form>
@@ -115,6 +115,11 @@
 			table.draw(data, {
 				title : "% delayed flights by date",
 				height : 500,
+				animation: {
+			          duration: 1000,
+			          easing: 'inAndOut',
+			          startup: true
+			      },
 // 				isStacked : true,
 				haxis : {
 					title : "Flights delayed"
